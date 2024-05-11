@@ -6,7 +6,7 @@ SSH_USER="root"
 DEV_SERVER="47.236.178.102"
 # 服务器部署目录路径
 # REMOTE_PROJECT_PATH="/home/wwwroot/lnmp01/domain/admin.yungoubuy.com/web"
-REMOTE_PROJECT_PATH="/Users/wangchao/i/automatic-publishing/packages/service"
+REMOTE_PROJECT_PATH="/Users/wangchao/home/web"
 # 前端项目文件存放路径
 FRONT_END_PATH="/Users/wangchao/i/automatic-publishing/packages/service/admin"
 # 前端项目文件夹名称
@@ -27,7 +27,6 @@ GIT_BRANCH="test"
 clone_project() {
     echo "clone project..."
     # 删除本地项目
-    pwd
     rm -rf admin
     # 克隆项目到本地
     git clone -b $GIT_BRANCH $GIT_REPO
@@ -46,6 +45,8 @@ clone_project() {
 
 
 upload_project() {
+    # 进入前端项目目录
+    cd $FRONT_END_PATH
     echo "gtar file ..."
     # 压缩打包文件
     gtar -czvf $LOCAL_PROJECT_NAME.tar.gz $LOCAL_PROJECT_NAME
@@ -53,26 +54,30 @@ upload_project() {
     
     echo "remove old project file..."
     # 删除服务器文件
-    ssh $SSH_USER@$DEV_SERVER "cd $REMOTE_PROJECT_PATH && rm -rf *"
+    cd $REMOTE_PROJECT_PATH && rm -rf *
     echo "remove old project file done..."
-    
+    sleep 3
     echo "upload new project file..."
     # 上传打包文件
-    scp -r $LOCAL_PROJECT_NAME.tar.gz $SSH_USER@$DEV_SERVER:$REMOTE_PROJECT_PATH
+    cd $FRONT_END_PATH
+    # scp -r $LOCAL_PROJECT_NAME.tar.gz $SSH_USER@$DEV_SERVER:$REMOTE_PROJECT_PATH
+    cp -r $LOCAL_PROJECT_NAME.tar.gz $REMOTE_PROJECT_PATH
     
     # 解压打包文件，移动文件到部署目录
-    ssh $SSH_USER@$DEV_SERVER "cd $REMOTE_PROJECT_PATH && tar -xzvf $LOCAL_PROJECT_NAME.tar.gz && cd $LOCAL_PROJECT_NAME && mv * ../"
+    # ssh $SSH_USER@$DEV_SERVER "cd $REMOTE_PROJECT_PATH && tar -xzvf $LOCAL_PROJECT_NAME.tar.gz && cd $LOCAL_PROJECT_NAME && mv * ../"
+    cd $REMOTE_PROJECT_PATH && tar -xzvf $LOCAL_PROJECT_NAME.tar.gz && cd $LOCAL_PROJECT_NAME && mv * ../
     # 删除压缩打包文件，解档剩余的空目录
-    ssh $SSH_USER@$DEV_SERVER "cd $REMOTE_PROJECT_PATH && rm -f $LOCAL_PROJECT_NAME.tar.gz && rm -rf $LOCAL_PROJECT_NAME"
+    # ssh $SSH_USER@$DEV_SERVER "cd $REMOTE_PROJECT_PATH && rm -f $LOCAL_PROJECT_NAME.tar.gz && rm -rf $LOCAL_PROJECT_NAME"
+    cd $REMOTE_PROJECT_PATH && rm -f $LOCAL_PROJECT_NAME.tar.gz && rm -rf $LOCAL_PROJECT_NAME
     # 删除本地的压缩打包文件
     rm -f $LOCAL_PROJECT_NAME.tar.gz
     echo "uplaod new project file done..."
 }
 
 
-clone_project
+# clone_project
 
-# upload_project
+upload_project
 
 echo "script execution complated. press any key to exit..."
 # 脚本执行完成 等待退出
